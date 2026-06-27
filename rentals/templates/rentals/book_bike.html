@@ -1,0 +1,93 @@
+{% extends 'rentals/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+        <div class="card shadow">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">
+                    <i class="fas fa-motorcycle me-2"></i>Booking: {{ bike.make }} {{ bike.model }}
+                </h4>
+            </div>
+
+            <div class="card-body">
+                <p class="text-muted">Rate: <strong>${{ bike.daily_rate }}/day</strong></p>
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> Please check the dates entered.
+                        </div>
+                    {% endif %}
+
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-bold">Start Date</label>
+                            {{ form.start_date }}
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label fw-bold">End Date</label>
+                            {{ form.end_date }}
+                        </div>
+                    </div>
+
+                    <!-- Live Cost Preview Box -->
+                    <div id="cost-preview" class="alert alert-info d-none mb-3">
+                        <div class="d-flex justify-content-between">
+                            <span>Duration:</span>
+                            <strong><span id="preview-days">0</span> day(s)</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mt-1">
+                            <span>Daily Rate:</span>
+                            <strong>${{ bike.daily_rate }}</strong>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between fs-5">
+                            <span class="fw-bold">Total Cost:</span>
+                            <strong class="text-success">$<span id="preview-total">0</span></strong>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100 py-2 fw-bold">
+                        <i class="fas fa-check me-2"></i> Confirm Booking
+                    </button>
+
+                    <a href="{% url 'bike_details' bike.id %}" class="btn btn-outline-secondary w-100 mt-2">
+                        Cancel
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const dailyRate = parseFloat("{{ bike.daily_rate }}");
+    const startInput = document.getElementById('id_start_date');
+    const endInput = document.getElementById('id_end_date');
+    const preview = document.getElementById('cost-preview');
+    const previewDays = document.getElementById('preview-days');
+    const previewTotal = document.getElementById('preview-total');
+
+    function updateCostPreview() {
+        const start = new Date(startInput.value);
+        const end = new Date(endInput.value);
+
+        if (startInput.value && endInput.value && end > start) {
+            const days = Math.max(1, Math.ceil((end - start) / (1000 * 60 * 60 * 24)));
+            const total = (days * dailyRate).toFixed(2);
+
+            previewDays.textContent = days;
+            previewTotal.textContent = total;
+            preview.classList.remove('d-none');
+        } else {
+            preview.classList.add('d-none');
+        }
+    }
+
+    startInput.addEventListener('change', updateCostPreview);
+    endInput.addEventListener('change', updateCostPreview);
+</script>
+{% endblock %}
